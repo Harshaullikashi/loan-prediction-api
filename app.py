@@ -20,11 +20,23 @@ def predict():
         return jsonify({"error": "Model file not found. Make sure 'loan_model.pkl' exists."})
 
     try:
-        data = request.json  # Extract JSON input
+        # ✅ Get JSON input before using 'data'
+        data = request.json  
 
-        # Validate incoming JSON
-        if not all(key in data for key in ["Income", "Credit_Score", "Loan_Amount"]):
-            return jsonify({"error": "Missing required fields: Income, Credit_Score, Loan_Amount"})
+        # ✅ Validate input fields
+        required_fields = ["Income", "Credit_Score", "Loan_Amount"]
+        if not all(field in data for field in required_fields):
+            return jsonify({"error": f"Missing required fields: {', '.join(required_fields)}"})
 
-        # Convert input data into a list for prediction
-        input_features = [[data["Income"],
+        # ✅ Use 'data' after defining it
+        input_features = [[data["Income"], data["Credit_Score"], data["Loan_Amount"]]]
+        
+        prediction = model.predict(input_features)  # Use ML model
+        
+        return jsonify({"Loan_Approval": "✅ Approved" if prediction[0] else "❌ Not Approved"})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)  # Ensure Flask is accessible externally
